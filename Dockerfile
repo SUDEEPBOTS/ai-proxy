@@ -13,7 +13,8 @@ RUN npm install --omit=dev
 # Copy the rest of the application code
 COPY . .
 
-# Expose the port (Railway provides the PORT environment variable)
+# Explicitly define the port so Express and Railway sync perfectly
+ENV PORT=3000
 EXPOSE 3000
 
 # Start the application
