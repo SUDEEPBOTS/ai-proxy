@@ -6,8 +6,8 @@ const cors = require('cors');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Upstream API Details
-const UPSTREAM_URL = process.env.UPSTREAM_URL || 'https://opencode.ai/zen/v1';
+// Upstream API Details (Hardcoded Base URL)
+const UPSTREAM_URL = 'https://opencode.ai/zen/v1';
 const UPSTREAM_API_KEY = process.env.UPSTREAM_API_KEY || 'your_secret_upstream_key';
 
 // Allowed API keys that you issue to your users (comma-separated in .env)
