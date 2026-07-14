@@ -118,6 +118,23 @@ app.get('/', (req, res) => {
     });
 });
 
+// Server IP checking endpoint
+app.get('/ip', async (req, res) => {
+    try {
+        // Fetch server's public IP using global fetch (available in Node 18+)
+        const response = await fetch('https://api.ipify.org?format=json');
+        const data = await response.json();
+        
+        res.json({
+            message: "IP Info",
+            server_public_ip: data.ip,
+            client_ip: req.headers['x-forwarded-for'] || req.socket.remoteAddress
+        });
+    } catch (error) {
+        res.status(500).json({ error: "Could not fetch server IP", details: error.message });
+    }
+});
+
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`✅ AI Proxy running on port ${PORT}`);
     console.log(`🔗 Forwarding traffic to: ${UPSTREAM_URL}`);
