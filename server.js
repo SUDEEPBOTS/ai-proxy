@@ -4,15 +4,16 @@ const { createProxyMiddleware } = require('http-proxy-middleware');
 const cors = require('cors');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+// Hardcoded as requested by the user
+const PORT = 3000;
 
 // Upstream API Details (Hardcoded Base URL)
 const UPSTREAM_URL = 'https://opencode.ai/zen/v1';
 const UPSTREAM_API_KEY = process.env.UPSTREAM_API_KEY || 'your_secret_upstream_key';
 
 // Allowed API keys that you issue to your users (comma-separated in .env)
-// If left empty in .env, it will allow anyone (public API). 
-const ALLOWED_KEYS_STRING = process.env.ALLOWED_KEYS || '';
+// Hardcoded as requested by the user
+const ALLOWED_KEYS_STRING = process.env.ALLOWED_KEYS || 'sk-sudeep';
 const ALLOWED_KEYS = ALLOWED_KEYS_STRING.split(',').map(k => k.trim()).filter(Boolean);
 
 // Helper to safely log keys
