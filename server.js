@@ -100,7 +100,7 @@ app.get('/', (req, res) => {
     });
 });
 
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
     console.log(`✅ AI Proxy running on port ${PORT}`);
     console.log(`🔗 Forwarding traffic to: ${UPSTREAM_URL}`);
     console.log(`🔑 Protected by API Keys: ${ALLOWED_KEYS.length > 0 ? 'Yes' : 'No (Public)'}`);
