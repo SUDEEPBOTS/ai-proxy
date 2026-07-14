@@ -58,24 +58,26 @@ const apiProxy = createProxyMiddleware({
     pathRewrite: {
         '^/v1': '', 
     },
-    onProxyReq: (proxyReq, req, res) => {
-        // Remove the user's API key
-        proxyReq.removeHeader('authorization');
-        
-        // Inject your real upstream API key secretly
-        proxyReq.setHeader('Authorization', `Bearer ${UPSTREAM_API_KEY}`);
-        
-        // We must also ensure body is forwarded correctly if needed,
-        // http-proxy-middleware handles raw bodies automatically.
-    },
-    onError: (err, req, res) => {
-        console.error("Proxy Error:", err);
-        res.status(502).json({
-            error: {
-                message: "Bad gateway: Unable to reach the upstream AI provider.",
-                type: "api_error"
+    on: {
+        proxyReq: (proxyReq, req, res) => {
+            // Remove the user's API key completely (case-insensitive in Node headers)
+            proxyReq.removeHeader('authorization');
+            proxyReq.removeHeader('Authorization');
+            
+            // Inject your real upstream API key secretly
+            proxyReq.setHeader('Authorization', `Bearer ${UPSTREAM_API_KEY}`);
+        },
+        error: (err, req, res) => {
+            console.error("Proxy Error:", err);
+            if (!res.headersSent) {
+                res.status(502).json({
+                    error: {
+                        message: "Bad gateway: Unable to reach the upstream AI provider.",
+                        type: "api_error"
+                    }
+                });
             }
-        });
+        }
     }
 });
 
