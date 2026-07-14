@@ -78,6 +78,13 @@ const apiProxy = createProxyMiddleware({
             proxyReq.removeHeader('authorization');
             proxyReq.removeHeader('Authorization');
             
+            // Remove IP tracking headers so OpenCode NEVER sees the Client IP
+            proxyReq.removeHeader('x-forwarded-for');
+            proxyReq.removeHeader('x-real-ip');
+            proxyReq.removeHeader('forwarded');
+            proxyReq.removeHeader('x-forwarded-host');
+            proxyReq.removeHeader('x-forwarded-proto');
+            
             // Inject your real upstream API key secretly
             proxyReq.setHeader('Authorization', `Bearer ${UPSTREAM_API_KEY}`);
             
