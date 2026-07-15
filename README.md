@@ -99,7 +99,7 @@ Deploying AI Proxy Node is incredibly simple. It requires zero setup and no exte
   <img src="https://img.shields.io/badge/Deploy%20to%20Render-46E3B7?style=for-the-badge&logo=render&logoColor=white" width="200" height="45"/>
 </a>
 <br>
-<a href="https://railway.app/template?gh_repo=SUDEEPBOTS/ai-proxy">
+<a href="https://railway.app/new?template=https://github.com/SUDEEPBOTS/ai-proxy">
   <img src="https://img.shields.io/badge/Deploy%20on%20Railway-131415?style=for-the-badge&logo=railway&logoColor=white" width="200" height="45"/>
 </a>
 </p>
