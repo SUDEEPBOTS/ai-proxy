@@ -4,8 +4,7 @@ const { createProxyMiddleware } = require('http-proxy-middleware');
 const cors = require('cors');
 
 const app = express();
-// Hardcoded as requested by the user
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 // Upstream API Details (Hardcoded Base URL)
 const UPSTREAM_URL = 'https://opencode.ai/zen/v1';

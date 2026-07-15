@@ -1,0 +1,36 @@
+{
+  "name": "AI Proxy",
+  "description": "A high-performance, stateless Node.js Proxy for AI models that strips IP headers and securely forwards requests.",
+  "logo": "https://img.shields.io/badge/AI-Proxy-black?style=for-the-badge&logo=openai",
+  "keywords": [
+    "nodejs",
+    "express",
+    "proxy",
+    "ai",
+    "opencode"
+  ],
+  "repository": "https://github.com/SUDEEPBOTS/ai-proxy",
+  "stack": "container",
+  "env": {
+    "UPSTREAM_API_KEY": {
+      "description": "Your actual upstream API Key (e.g., from OpenCode)",
+      "required": true
+    },
+    "ALLOWED_KEYS": {
+      "description": "Comma-separated list of keys you want to allow to access this proxy",
+      "required": false,
+      "value": "sk-sudeep"
+    }
+  },
+  "buildpacks": [
+    {
+      "url": "heroku/nodejs"
+    }
+  ],
+  "formation": {
+    "web": {
+      "quantity": 1,
+      "size": "eco"
+    }
+  }
+}
