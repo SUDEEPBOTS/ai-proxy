@@ -78,7 +78,10 @@ const apiProxy = createProxyMiddleware({
     router: (req) => {
         if (req.body && req.body.model) {
             const model = req.body.model.toLowerCase();
-            if (model.includes('glm') || model.includes('kimi')) {
+            if (model.includes('glm')) {
+                return "https://router.huggingface.co/v1";
+            }
+            if (model.includes('kimi')) {
                 return CLOUDFLARE_URL;
             }
         }
@@ -102,18 +105,26 @@ const apiProxy = createProxyMiddleware({
             proxyReq.removeHeader('x-forwarded-proto');
             
             const isCloudflare = req.body && req.body.model && 
-                                 (req.body.model.toLowerCase().includes('glm') || req.body.model.toLowerCase().includes('kimi'));
+                                 req.body.model.toLowerCase().includes('kimi');
+            const isHF = req.body && req.body.model && 
+                         req.body.model.toLowerCase().includes('glm');
             
             if (isCloudflare) {
                 // Inject Cloudflare API key secretly
                 proxyReq.setHeader('Authorization', `Bearer ${CLOUDFLARE_API_KEY}`);
                 console.log(`[DEBUG] Routing to Cloudflare: ${req.body.model}`);
-                console.log(`[DEBUG] ProxyReq Headers Sent -> Authorization: Bearer ${maskKey(CLOUDFLARE_API_KEY)}`);
+            } else if (isHF) {
+                // Override model name because HF expects a different string than Cloudflare
+                req.body.model = "zai-org/GLM-5.2:novita";
+                
+                // Inject Hugging Face API key secretly
+                const hfToken = process.env.HF_TOKEN || 'YOUR_HF_TOKEN';
+                proxyReq.setHeader('Authorization', `Bearer ${hfToken}`);
+                console.log(`[DEBUG] Routing to Hugging Face with mapped model: ${req.body.model}`);
             } else {
                 // Inject OpenCode API key secretly
                 proxyReq.setHeader('Authorization', `Bearer ${UPSTREAM_API_KEY}`);
                 console.log(`[DEBUG] Routing to OpenCode: ${req.body?.model || 'unknown'}`);
-                console.log(`[DEBUG] ProxyReq Headers Sent -> Authorization: Bearer ${maskKey(UPSTREAM_API_KEY)}`);
             }
 
             // Fix request body stream since it was consumed by express.json()
