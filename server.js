@@ -1,6 +1,6 @@
 require('dotenv').config();
 const express = require('express');
-const { createProxyMiddleware } = require('http-proxy-middleware');
+const { createProxyMiddleware, fixRequestBody } = require('http-proxy-middleware');
 const cors = require('cors');
 
 const app = express();
@@ -9,6 +9,10 @@ const PORT = process.env.PORT || 3000;
 // Upstream API Details (Hardcoded Base URL)
 const UPSTREAM_URL = 'https://opencode.ai/zen/v1';
 const UPSTREAM_API_KEY = process.env.UPSTREAM_API_KEY || 'your_secret_upstream_key';
+
+const CLOUDFLARE_ACCOUNT_ID = process.env.CLOUDFLARE_ACCOUNT_ID || 'your_cloudflare_account_id';
+const CLOUDFLARE_API_KEY = process.env.CLOUDFLARE_API_KEY || 'your_cloudflare_api_key';
+const CLOUDFLARE_URL = `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/ai/v1`;
 
 // Allowed API keys that you issue to your users (comma-separated in .env)
 // Hardcoded as requested by the user
@@ -24,6 +28,9 @@ const maskKey = (key) => {
 };
 
 app.use(cors());
+
+// Parse JSON body for /v1 requests so we can inspect the model
+app.use('/v1', express.json());
 
 // 1. Authentication Middleware
 app.use('/v1', (req, res, next) => {
@@ -68,6 +75,15 @@ app.use('/v1', (req, res, next) => {
 const apiProxy = createProxyMiddleware({
     target: UPSTREAM_URL,
     changeOrigin: true,
+    router: (req) => {
+        if (req.body && req.body.model) {
+            const model = req.body.model.toLowerCase();
+            if (model.includes('glm') || model.includes('kimi')) {
+                return CLOUDFLARE_URL;
+            }
+        }
+        return UPSTREAM_URL;
+    },
     // Strip /v1 from the incoming request so it appends correctly to UPSTREAM_URL
     pathRewrite: {
         '^/v1': '', 
@@ -85,10 +101,25 @@ const apiProxy = createProxyMiddleware({
             proxyReq.removeHeader('x-forwarded-host');
             proxyReq.removeHeader('x-forwarded-proto');
             
-            // Inject your real upstream API key secretly
-            proxyReq.setHeader('Authorization', `Bearer ${UPSTREAM_API_KEY}`);
+            const isCloudflare = req.body && req.body.model && 
+                                 (req.body.model.toLowerCase().includes('glm') || req.body.model.toLowerCase().includes('kimi'));
             
-            console.log(`[DEBUG] ProxyReq Headers Sent -> Authorization: Bearer ${maskKey(UPSTREAM_API_KEY)}`);
+            if (isCloudflare) {
+                // Inject Cloudflare API key secretly
+                proxyReq.setHeader('Authorization', `Bearer ${CLOUDFLARE_API_KEY}`);
+                console.log(`[DEBUG] Routing to Cloudflare: ${req.body.model}`);
+                console.log(`[DEBUG] ProxyReq Headers Sent -> Authorization: Bearer ${maskKey(CLOUDFLARE_API_KEY)}`);
+            } else {
+                // Inject OpenCode API key secretly
+                proxyReq.setHeader('Authorization', `Bearer ${UPSTREAM_API_KEY}`);
+                console.log(`[DEBUG] Routing to OpenCode: ${req.body?.model || 'unknown'}`);
+                console.log(`[DEBUG] ProxyReq Headers Sent -> Authorization: Bearer ${maskKey(UPSTREAM_API_KEY)}`);
+            }
+
+            // Fix request body stream since it was consumed by express.json()
+            if (req.body) {
+                fixRequestBody(proxyReq, req);
+            }
         },
         error: (err, req, res) => {
             console.error("[DEBUG] Proxy Error:", err);
